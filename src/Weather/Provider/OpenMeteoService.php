@@ -8,7 +8,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Aucune clé API requise. Portée max : 16 jours.
- * Humidité non disponible en agrégat journalier → null.
+ * Humidité récupérée en horaire (24 valeurs/jour) puis moyennée — non disponible en journalier.
  */
 class OpenMeteoService implements WeatherProviderInterface
 {
@@ -24,28 +24,39 @@ class OpenMeteoService implements WeatherProviderInterface
     {
         $response = $this->httpClient->request('GET', self::BASE_URL, [
             'query' => [
-                'latitude'       => $lat,
-                'longitude'      => $lon,
-                'daily'          => implode(',', [
+                'latitude'        => $lat,
+                'longitude'       => $lon,
+                'daily'           => implode(',', [
                     'temperature_2m_max',
                     'temperature_2m_min',
                     'precipitation_sum',
                     'precipitation_probability_max',
                     'wind_speed_10m_max',
                 ]),
-                'forecast_days'  => 15,
-                'timezone'       => 'Europe/Paris',
+                'hourly'          => 'relative_humidity_2m',
+                'forecast_days'   => 15,
+                'timezone'        => 'Europe/Paris',
                 'wind_speed_unit' => 'kmh',
             ],
         ]);
 
-        $daily = $response->toArray()['daily'];
+        $data   = $response->toArray();
+        $daily  = $data['daily'];
+        $hourly = $data['hourly']['relative_humidity_2m'];
+
         $forecasts = [];
 
         foreach (self::HORIZONS as $horizon) {
             if (!isset($daily['time'][$horizon])) {
                 continue;
             }
+
+            // Les données horaires sont sur 15 jours × 24h = 360 valeurs.
+            // L'humidité du jour à l'index $horizon correspond aux heures [$horizon*24 .. $horizon*24+23].
+            $humiditySlice = array_slice($hourly, $horizon * 24, 24);
+            $humidity = count($humiditySlice) > 0
+                ? (int) round(array_sum($humiditySlice) / count($humiditySlice))
+                : null;
 
             $forecasts[$horizon] = new ForecastData(
                 horizon: $horizon,
@@ -57,7 +68,7 @@ class OpenMeteoService implements WeatherProviderInterface
                     ? (int) $daily['precipitation_probability_max'][$horizon]
                     : null,
                 windSpeed: $daily['wind_speed_10m_max'][$horizon] ?? null,
-                humidity: null,
+                humidity: $humidity,
             );
         }
 
