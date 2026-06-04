@@ -19,6 +19,15 @@ services:
     App\:
         resource: '../src/'
 
+    # Tag automatique sur tous les WeatherProviderInterface pour injection dans CollectForecastsCommand
+    _instanceof:
+        App\Weather\WeatherProviderInterface:
+            tags: ['app.weather_provider']
+
+    App\Command\CollectForecastsCommand:
+        arguments:
+            $providers: !tagged_iterator app.weather_provider
+
     # Injection des clés API pour les services météo nécessitant une authentification
     App\Weather\Provider\OpenWeatherMapService:
         arguments:
