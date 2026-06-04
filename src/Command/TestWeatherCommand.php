@@ -12,7 +12,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 #[AsCommand(name: 'app:test-weather', description: 'Teste Open-Meteo sur toutes les villes, tous les horizons, toutes les variables')]
 class TestWeatherCommand extends Command
 {
-    // Les 21 villes du projet avec leurs coordonnées
+    // Les 20 villes du projet avec leurs coordonnées
     private const CITIES = [
         'Paris'            => [48.8566,  2.3522],
         'Lyon'             => [45.7578,  4.8320],
@@ -34,7 +34,6 @@ class TestWeatherCommand extends Command
         'Biarritz'         => [43.4832, -1.5586],
         'Tarbes'           => [43.2327,  0.0781],
         'Chamonix'         => [45.9237,  6.8694],
-        'Nice'             => [43.7102,  7.2620],
     ];
 
     private const HORIZONS = [0, 5, 10, 14];
