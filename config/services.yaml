@@ -19,5 +19,24 @@ services:
     App\:
         resource: '../src/'
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    # Injection des clés API pour les services météo nécessitant une authentification
+    App\Weather\Provider\OpenWeatherMapService:
+        arguments:
+            $apiKey: '%env(OPENWEATHERMAP_API_KEY)%'
+
+    App\Weather\Provider\VisualCrossingService:
+        arguments:
+            $apiKey: '%env(VISUAL_CROSSING_API_KEY)%'
+
+    App\Weather\Provider\WeatherApiService:
+        arguments:
+            $apiKey: '%env(WEATHERAPI_KEY)%'
+
+    App\Weather\Provider\MeteoFranceService:
+        arguments:
+            $apiKey: '%env(METEOFRANCE_API_KEY)%'
+
+    App\Weather\Provider\InfoclimatService:
+        arguments:
+            $apiKey: '%env(INFOCLIMAT_API_KEY)%'
+            $apiSecret: '%env(INFOCLIMAT_API_SECRET)%'
